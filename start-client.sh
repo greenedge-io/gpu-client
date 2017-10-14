@@ -42,11 +42,12 @@ fi
 ./stop-client.sh
 
 # start new instances and monitor
-echo "Starting FoG client in $GPUS GPU(s)..."
+echo "Starting FoG client on $GPUS GPU(s)..."
 for GPU in `seq 1 $GPUS`; do
 	GPU_ID=$(($GPU-1))
 	screen -S "fog" -d -m ./run-client.sh $GPU_ID 
-	SCR=`screen -ls | grep "fog" | cut -d '.' -f 1`
-	echo "You can monitor the behavior of FoG GPU client on GPU $GPU_ID by connecting to the screen: 'screen -r $SCR'" 
+	SCR=`screen -ls | grep "fog" | tr -s ' ' | cut -d '.' -f 1`
+	echo "You can monitor the behavior of FoG GPU client on GPU $GPU_ID by connecting to the screen: 'screen -r $SCR'"
+	sleep 1
 done
 
