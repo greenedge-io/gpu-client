@@ -32,8 +32,7 @@ fi
 # get all Nvidia GPUs
 CMD_GPUINFO="./getdevinfo-$ARCH"
 if [ -e $CMD_GPUINFO ]; then 
-	$CMD_GPUINFO > $TMP
-	GPUS=`cat $TMP | grep "Found" | cut -d ' ' -f 2`
+	GPUS=`$CMD_GPUINFO | grep "Found" | cut -d ' ' -f 2`
 else
 	echo "Auxiliary scripts not found! Please contact us at info@greenedge.io"
 	exit 1
@@ -44,9 +43,10 @@ fi
 
 # start new instances and monitor
 echo "Starting FoG client in $GPUS GPU(s)..."
-for GPU in `seq 0 $GPUS`; do
-	screen -S "fog" ./run-client.sh $GPU 
+for GPU in `seq 1 $GPUS`; do
+	GPU_ID=$(($GPU-1))
+	screen -S "fog" -d -m ./run-client.sh $GPU_ID 
 	SCR=`screen -ls | grep "fog" | cut -d '.' -f 1`
-	echo "You can monitor the behavior of FoG GPU client on GPU $GPU by connecting to the screen: 'screen -r $SCR'" 
+	echo "You can monitor the behavior of FoG GPU client on GPU $GPU_ID by connecting to the screen: 'screen -r $SCR'" 
 done
 
