@@ -9,6 +9,7 @@
 #
 DOCKER_IMG_NAME="dloghin/fog-amd64"
 CFGFILE=".config"
+ARCH=`uname -m`
 
 # check if there is nvidia-docker and screen
 command -v nvidia-docker >/dev/null 2>&1 || { echo >&2 "Please install 'nvidia-docker'. See the intructions at https://github.com/greenedge-io/gpu-client."; exit 1; }
@@ -28,11 +29,24 @@ else
 	echo "Email address and secret saved to $CFGFILE"
 fi
 
+# get all Nvidia GPUs
+CMD_GPUINFO="./getdevinfo-$ARCH"
+if [ -e $CMD_GPUINFO ]; then 
+	$CMD_GPUINFO > $TMP
+	GPUS=`cat $TMP | grep "Found" | cut -d ' ' -f 2`
+else
+	echo "Auxiliary scripts not found! Please contact us at info@greenedge.io"
+	exit 1
+fi 
+
 # kill existing running instances
 ./stop-client.sh
 
-# start new instance and monitor
-screen -S "fog" ./run-client.sh
-SCR=`screen -ls | grep "fog" | cut -d '.' -f 1`
-echo "You can monitor the behavior of FoG GPU client by connecting to the screen: 'screen -r $SCR'" 
+# start new instances and monitor
+echo "Starting FoG client in $GPUS GPU(s)..."
+for GPU in `seq 0 $GPUS`; do
+	screen -S "fog" ./run-client.sh $GPU 
+	SCR=`screen -ls | grep "fog" | cut -d '.' -f 1`
+	echo "You can monitor the behavior of FoG GPU client on GPU $GPU by connecting to the screen: 'screen -r $SCR'" 
+done
 
